@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Project PDFs - Student Portfolio</title>
+    <!-- Load Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Use Inter font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fc;
+        }
+        /* Custom scrollbar for aesthetic */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; /* slate-300 */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; /* slate-400 */
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div id="app" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- HEADER & NAVIGATION -->
+        <header class="flex flex-col sm:flex-row justify-between items-center bg-white shadow-lg rounded-2xl p-4 mb-8 sticky top-0 z-10">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-4 sm:mb-0">
+                <!-- Site Title is injected via JavaScript constant -->
+                <a href="#" onclick="showPublicView(); return false;" class="hover:text-indigo-600 transition duration-300">
+                    <svg class="inline w-6 h-6 mr-2 -mt-1 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span id="site-title-display">MADE BY HARSHIL NARIYA</span>
+                </a>
+            </h1>
+            <div class="flex items-center space-x-4 w-full sm:w-auto">
+                <button id="manage-btn" onclick="openLoginModal()" class="px-4 py-2 bg-indigo-500 text-white font-medium rounded-xl shadow-md hover:bg-indigo-600 transition duration-300 transform hover:scale-105">
+                    Manage PDFs
+                </button>
+                <button id="logout-btn" onclick="logout()" class="hidden px-4 py-2 bg-red-500 text-white font-medium rounded-xl shadow-md hover:bg-red-600 transition duration-300 transform hover:scale-105">
+                    Logout
+                </button>
+            </div>
+        </header>
+        
+        <!-- SEARCH BAR (Public View) -->
+        <div id="search-container" class="mb-8 p-4 bg-white rounded-xl shadow-md transition duration-500">
+            <label for="search" class="sr-only">Search Projects</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input type="text" id="search" onkeyup="filterPdfs(event)" placeholder="Search projects by title..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 transition duration-300 shadow-inner">
+            </div>
+        </div>
+
+
+        <!-- MAIN CONTENT AREA -->
+        <main id="content-area">
+            <!-- Content will be injected here (Public Grid or Admin Panel) -->
+        </main>
+        
+        <!-- NOTIFICATION BANNER -->
+        <div id="notification-banner" class="fixed bottom-4 right-4 bg-green-500 text-white p-3 rounded-xl shadow-xl hidden transition-opacity duration-300 opacity-0 z-50" role="alert">
+            <!-- Notification message goes here -->
+        </div>
+
+    </div>
+
+    <!-- MODALS -->
+
+    <!-- 1. Admin Login Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden flex items-center justify-center p-4 z-50 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-95 opacity-0">
+            <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Admin Login</h2>
+            <form onsubmit="adminLogin(event)">
+                <div class="mb-4">
+                    <label for="admin-username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                    <input type="text" id="admin-username" name="username" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm" placeholder="Enter username">
+                </div>
+                <div class="mb-6">
+                    <label for="admin-password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <input type="password" id="admin-password" name="password" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm" placeholder="Enter password">
+                    <p id="login-error" class="text-red-500 text-sm mt-2 hidden">Invalid username or password.</p>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeLoginModal()" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-xl hover:bg-gray-300 transition duration-200">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition duration-200">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Add/Edit PDF Modal -->
+    <div id="pdf-form-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden flex items-center justify-center p-4 z-50 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-lg transform transition-all duration-300 scale-95 opacity-0">
+            <h2 id="form-modal-title" class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Add New PDF</h2>
+            <form id="pdf-form" onsubmit="savePdf(event)">
+                <input type="hidden" id="pdf-id">
+                <div class="mb-4">
+                    <label for="pdf-title" class="block text-sm font-medium text-gray-700 mb-1">PDF Title</label>
+                    <input type="text" id="pdf-title" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm" placeholder="e.g., Final Thesis Report">
+                </div>
+                <div class="mb-4">
+                    <label for="pdf-link" class="block text-sm font-medium text-gray-700 mb-1">PDF Link (URL)</label>
+                    <input type="url" id="pdf-link" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm" placeholder="Must start with http:// or https:// (e.g., a link to your PDF file)">
+                </div>
+                <div class="mb-6">
+                    <label for="pdf-thumbnail" class="block text-sm font-medium text-gray-700 mb-1">Thumbnail Image URL Link (For Custom Thumbnail)</label>
+                    <input type="url" id="pdf-thumbnail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 shadow-sm" placeholder="Optional: Paste a link to a publicly hosted image (e.g., PNG, JPG)">
+                    <p class="text-xs text-gray-500 mt-1">Note: This is a static site, so we must use a **link (URL)** to a thumbnail image, not an uploaded file.</p>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closePdfFormModal()" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-xl hover:bg-gray-300 transition duration-200">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 transition duration-200">Save PDF</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+<script>
+    // --- GLOBAL STATE & CONSTANTS ---
+    const SITE_TITLE = 'MADE BY HARSHIL NARIYA'; 
+    const ADMIN_USERNAME = 'harshil';
+    const ADMIN_PASSWORD = 'harshil123';
+    // -----------------------------------------------------------------------------------
+
+    const STORAGE_KEY = 'project_pdfs';
+    let isLoggedIn = false;
+    let pdfList = [];
+
+    // --- UTILITIES ---
+
+    /**
+     * Helper to show a temporary notification banner.
+     * @param {string} message 
+     * @param {string} type 'success' or 'error'
+     */
+    function showNotification(message, type = 'success') {
+        const banner = document.getElementById('notification-banner');
+        banner.textContent = message;
+        
+        // Reset classes
+        banner.classList.remove('bg-green-500', 'bg-red-500', 'hidden', 'opacity-0');
+        banner.classList.add(type === 'success' ? 'bg-green-500' : 'bg-red-500', 'opacity-100');
+
+        setTimeout(() => {
+            banner.classList.add('opacity-0');
+            setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 300); // Wait for fade out transition
+        }, 3000);
+    }
+
+    // --- DATA MANAGEMENT (localStorage) ---
+
+    /**
+     * Loads PDF data from localStorage.
+     */
+    function loadPdfs() {
+        // Set the customizable title in the header
+        document.getElementById('site-title-display').textContent = SITE_TITLE;
+        document.title = SITE_TITLE; // Simplified title setting
+        
+        const data = localStorage.getItem(STORAGE_KEY);
+        if (data) {
+            try {
+                pdfList = JSON.parse(data);
+            } catch (e) {
+                console.error("Could not parse PDF data from localStorage:", e);
+                pdfList = []; // Reset on error
+            }
+        } else {
+            // Initial mock data if storage is empty
+            pdfList = [
+                { id: crypto.randomUUID(), title: "Semester Project: AI Chatbot Design", link: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", thumbnail: "https://placehold.co/600x400/1e293b/ffffff?text=AI+Project" },
+                { id: crypto.randomUUID(), title: "Advanced Calculus II Notes", link: "https://arxiv.org/pdf/2202.10091", thumbnail: "https://placehold.co/600x400/4f46e5/ffffff?text=Math+Notes" },
+                { id: crypto.randomUUID(), title: "Data Structures Final Report", link: "https://file-examples.com/storage/fe2c92158663806a6b5a371/2017/10/file-sample_150kB.pdf", thumbnail: "https://placehold.co/600x400/8b5cf6/ffffff?text=CS+Report" }
+            ];
+            savePdfs(); // Save initial list
+        }
+    }
+
+    /**
+     * Saves the current PDF list to localStorage.
+     */
+    function savePdfs() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(pdfList));
+        renderContent();
+    }
+
+    // --- ADMIN AUTHENTICATION ---
+
+    function openLoginModal() {
+        if (isLoggedIn) {
+            showAdminView();
+            return;
+        }
+        const modal = document.getElementById('login-modal');
+        const modalContent = modal.querySelector('.transform');
+        document.getElementById('login-error').classList.add('hidden');
+        
+        modal.classList.remove('hidden');
+        // Smooth entry animation
+        setTimeout(() => {
+            modal.style.opacity = '1';
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeLoginModal() {
+        const modal = document.getElementById('login-modal');
+        const modalContent = modal.querySelector('.transform');
+
+        // Smooth exit animation
+        modal.style.opacity = '0';
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        modalContent.classList.add('scale-95', 'opacity-0');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300); // Wait for transition
+    }
+
+    function adminLogin(event) {
+        event.preventDefault();
+        const username = document.getElementById('admin-username').value;
+        const password = document.getElementById('admin-password').value;
+        const errorMsg = document.getElementById('login-error');
+
+        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+            isLoggedIn = true;
+            localStorage.setItem('admin_logged_in', 'true');
+            closeLoginModal();
+            showAdminView();
+            showNotification('Login successful!', 'success');
+        } else {
+            errorMsg.classList.remove('hidden');
+            showNotification('Invalid credentials.', 'error');
+        }
+    }
+
+    function logout() {
+        isLoggedIn = false;
+        localStorage.removeItem('admin_logged_in');
+        showPublicView();
+        showNotification('Logged out successfully.', 'success');
+    }
+
+    // Check login status on page load
+    function checkAuthStatus() {
+        if (localStorage.getItem('admin_logged_in') === 'true') {
+            isLoggedIn = true;
+        }
+    }
+
+    // --- VIEW RENDERING ---
+
+    function renderContent(filteredList = null) {
+        if (isLoggedIn) {
+            showAdminView();
+        } else {
+            showPublicView(filteredList);
+        }
+    }
+
+    function showPublicView(filteredList = null) {
+        const list = filteredList || pdfList;
+        const contentArea = document.getElementById('content-area');
+        const manageBtn = document.getElementById('manage-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const searchContainer = document.getElementById('search-container');
+        
+        // Update UI state
+        manageBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+        searchContainer.classList.remove('hidden');
+        
+        // Clear search input focus/value when navigating to public view
+        const searchInput = document.getElementById('search');
+        if (searchInput) {
+            searchInput.value = '';
+        }
+
+        let html = list.map(pdf => `
+            <div class="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition duration-300 transform hover:scale-[1.01] overflow-hidden flex flex-col md:flex-row">
+                <!-- Thumbnail Area -->
+                <div class="md:w-1/3 h-48 md:h-auto bg-gray-100 flex items-center justify-center p-4">
+                    ${pdf.thumbnail ? 
+                        `<img src="${pdf.thumbnail}" onerror="this.onerror=null;this.src='https://placehold.co/600x400/94a3b8/ffffff?text=Image+Missing'" alt="${pdf.title}" class="w-full h-full object-cover rounded-xl shadow-md">`
+                        :
+                        // Fallback icon for missing thumbnail URL
+                        `<svg class="w-16 h-16 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>`
+                    }
+                </div>
+                <!-- Content Area -->
+                <div class="p-6 flex-grow md:w-2/3">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">${pdf.title}</h3>
+                    <p class="text-gray-500 mb-4 truncate">${pdf.link}</p>
+                    <a href="${pdf.link}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-4 py-2 bg-indigo-500 text-white font-medium rounded-xl shadow-lg hover:bg-indigo-600 transition duration-300 transform hover:translate-y-0.5">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Download / Open PDF
+                    </a>
+                </div>
+            </div>
+        `).join('');
+
+        if (list.length === 0) {
+            html = `<div class="text-center p-12 bg-white rounded-xl shadow-md text-gray-500">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"></path></svg>
+                        <p class="text-xl font-medium">No projects found.</p>
+                        <p class="mt-2">The administrator hasn't added any PDFs yet.</p>
+                    </div>`;
+        }
+
+        contentArea.innerHTML = `
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">Available Projects</h2>
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                ${html}
+            </div>
+        `;
+    }
+
+    function showAdminView() {
+        const contentArea = document.getElementById('content-area');
+        const manageBtn = document.getElementById('manage-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const searchContainer = document.getElementById('search-container');
+
+        // Update UI state
+        manageBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+        searchContainer.classList.add('hidden');
+
+        // Admin Panel HTML
+        let tableRows = pdfList.map(pdf => `
+            <tr class="hover:bg-gray-50 transition duration-150 border-t border-gray-100">
+                <td class="p-4 whitespace-nowrap text-sm font-medium text-gray-900">${pdf.title}</td>
+                <td class="p-4 text-sm text-indigo-600 truncate max-w-xs md:max-w-md">
+                    <a href="${pdf.link}" target="_blank" rel="noopener noreferrer" class="hover:underline">${pdf.link}</a>
+                </td>
+                <td class="p-4 text-sm text-gray-500 max-w-xs truncate">${pdf.thumbnail || 'None'}</td>
+                <td class="p-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                    <button onclick="editPdf('${pdf.id}')" class="text-indigo-600 hover:text-indigo-900 transition duration-150 p-2 rounded-full hover:bg-indigo-100" title="Edit">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-7 1l4-4M15.293 3.293a1 1 0 011.414 0l2 2a1 1 0 010 1.414l-8 8H13v-3l-4-4 8-8z"></path></svg>
+                    </button>
+                    <button onclick="deletePdf('${pdf.id}', '${pdf.title}')" class="text-red-600 hover:text-red-900 transition duration-150 p-2 rounded-full hover:bg-red-100" title="Delete">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        contentArea.innerHTML = `
+            <div class="bg-white p-6 rounded-2xl shadow-xl">
+                <div class="flex justify-between items-center mb-6 border-b pb-3">
+                    <h2 class="text-3xl font-bold text-gray-800">Admin Management Panel</h2>
+                    <button onclick="openPdfFormModal()" class="px-4 py-2 bg-indigo-500 text-white font-medium rounded-xl shadow-md hover:bg-indigo-600 transition duration-300 transform hover:scale-105 inline-flex items-center">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                        Add New PDF
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-1/4">Title</th>
+                                <th class="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-1/3">Link</th>
+                                <th class="p-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-1/4">Thumbnail URL</th>
+                                <th class="p-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider w-1/6">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${tableRows || `<tr><td colspan="4" class="p-6 text-center text-gray-500">No PDFs have been added yet.</td></tr>`}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    // --- CRUD OPERATIONS ---
+
+    function openPdfFormModal(pdf = null) {
+        const modal = document.getElementById('pdf-form-modal');
+        const modalContent = modal.querySelector('.transform');
+        const form = document.getElementById('pdf-form');
+        const titleInput = document.getElementById('form-modal-title');
+        
+        // Reset form
+        form.reset();
+        document.getElementById('pdf-id').value = '';
+
+        if (pdf) {
+            // Edit mode
+            titleInput.textContent = 'Edit PDF: ' + pdf.title;
+            document.getElementById('pdf-id').value = pdf.id;
+            document.getElementById('pdf-title').value = pdf.title;
+            document.getElementById('pdf-link').value = pdf.link;
+            document.getElementById('pdf-thumbnail').value = pdf.thumbnail || '';
+        } else {
+            // Add mode
+            titleInput.textContent = 'Add New PDF';
+        }
+
+        modal.classList.remove('hidden');
+        // Smooth entry animation
+        setTimeout(() => {
+            modal.style.opacity = '1';
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closePdfFormModal() {
+        const modal = document.getElementById('pdf-form-modal');
+        const modalContent = modal.querySelector('.transform');
+
+        // Smooth exit animation
+        modal.style.opacity = '0';
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        modalContent.classList.add('scale-95', 'opacity-0');
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300); // Wait for transition
+    }
+
+    function savePdf(event) {
+        event.preventDefault();
+        
+        if (!isLoggedIn) {
+            showNotification('Authentication required to save data.', 'error');
+            return;
+        }
+
+        const id = document.getElementById('pdf-id').value;
+        const title = document.getElementById('pdf-title').value;
+        const link = document.getElementById('pdf-link').value;
+        const thumbnail = document.getElementById('pdf-thumbnail').value;
+
+        const newPdf = {
+            id: id || crypto.randomUUID(),
+            title: title,
+            link: link,
+            thumbnail: thumbnail || null // Use null if empty
+        };
+
+        if (id) {
+            // Edit existing PDF
+            const index = pdfList.findIndex(p => p.id === id);
+            if (index !== -1) {
+                pdfList[index] = newPdf;
+                showNotification(`PDF "${title}" updated successfully.`, 'success');
+            }
+        } else {
+            // Add new PDF
+            pdfList.push(newPdf);
+            showNotification(`PDF "${title}" added successfully.`, 'success');
+        }
+
+        savePdfs();
+        closePdfFormModal();
+    }
+
+    function editPdf(id) {
+        const pdf = pdfList.find(p => p.id === id);
+        if (pdf) {
+            openPdfFormModal(pdf);
+        }
+    }
+
+    /**
+     * Deletes a PDF item directly. (FIX: Removed confirmation dialog)
+     * @param {string} id 
+     * @param {string} title 
+     */
+    function deletePdf(id, title) {
+        if (!isLoggedIn) {
+             showNotification('Authentication required to delete data.', 'error');
+             return;
+        }
+        
+        console.log(`Deleting PDF: ${title} (${id})`);
+
+        // FIX: Directly delete the item without using the confirm dialog,
+        // which often fails in iframe environments.
+        pdfList = pdfList.filter(p => p.id !== id);
+        savePdfs();
+        showNotification(`PDF "${title}" deleted.`, 'success');
+    }
+    
+    // --- SEARCH/FILTER ---
+
+    function filterPdfs(event) {
+        const query = event.target.value.toLowerCase().trim();
+        
+        if (!query) {
+            showPublicView(pdfList);
+            return;
+        }
+
+        const filtered = pdfList.filter(pdf => 
+            pdf.title.toLowerCase().includes(query)
+        );
+        showPublicView(filtered);
+    }
+
+    // --- INITIALIZATION ---
+
+    function initialize() {
+        // No confirmation/alert logic is needed here as per requirements.
+        
+        loadPdfs();
+        checkAuthStatus();
+        renderContent();
+    }
+
+    // Start the application when the window is loaded
+    window.onload = initialize;
+
+</script>
+</body>
+</html>
+
+
